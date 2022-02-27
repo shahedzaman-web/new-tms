@@ -47,6 +47,7 @@ import LanguageContext from './src/hooks/languageContext';
 import EASAdvocacy from './src/screen/EASAdvocacy';
 import SelectIncentive from './src/screen/SelectIncentive';
 import DistributionIncentive from './src/screen/DistributionIncentive';
+import PhotoFrame from './src/screen/PhotoFrame';
 
 // App stack navigator
 
@@ -68,6 +69,7 @@ const AppStackScreens = () => {
       <AppStack.Screen name="Communication" component={CommunicationPannel} />
       <AppStack.Screen name="Guideline" component={GuidelinePannel} />
       <AppStack.Screen name="SelectIncentive" component={SelectIncentive} />
+      <AppStack.Screen name="PhotoFrame" component={PhotoFrame} />
       <AppStack.Screen
         name="DistributionIncentive"
         component={DistributionIncentive}
@@ -244,6 +246,7 @@ export default App;
 
 const styles = StyleSheet.create({
   activityContainer: {
+    flex:1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',

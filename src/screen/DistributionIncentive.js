@@ -48,11 +48,6 @@ const DistributionIncentive = () => {
     console.log('Empty');
   };
 
-  const style = `.m-signature-pad--footer
-    .button {
-      background-color: red;
-      color: #FFF;
-    }`;
 
   useEffect(() => {
     if (userInfoContext.userInfo.outletCode) {
@@ -293,7 +288,7 @@ const DistributionIncentive = () => {
                   <TouchableOpacity
                     style={styles.modalBtn}
                     onPress={() =>
-                      setViewSignatureModal1(prevState => !prevState)
+                      setViewSignatureModal1(false)
                     }>
                     <Text style={styles.modalBtnText}>
                       {toggleLanguage ? 'Close Modal' : 'বন্ধ করুন'}

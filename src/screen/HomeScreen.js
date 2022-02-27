@@ -27,7 +27,8 @@ import NotificationContext from '../hooks/notificationContext';
 import LanguageContext from '../hooks/languageContext';
 import AppMenu from '../components/AppMenu';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import IconMaterial from 'react-native-vector-icons/MaterialCommunityIcons';
+import IconMaterialCommunity from 'react-native-vector-icons/MaterialCommunityIcons';
+import IconMaterial from 'react-native-vector-icons/MaterialIcons';
 
 Geocoder.init('AIzaSyD2teCqM8UnfoEvVLqzlwf7iHWPrfIJkvY');
 
@@ -182,102 +183,137 @@ const HomeScreen = ({navigation}) => {
 
   return (
     <AppScreen>
-        <ScrollView>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignSelf: 'flex-end',
-          marginRight: 20,
-          margin: 20,
-          zIndex: 1,
-        }}>
-        <TouchableOpacity
-          style={{marginRight: 20}}
-          onPress={() => navigation.navigate('Notification')}>
-          {notificationLength > 0 ? (
+      <ScrollView>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignSelf: 'flex-end',
+            marginRight: 20,
+            margin: 20,
+            zIndex: 1,
+          }}>
+          <TouchableOpacity
+            style={{marginRight: 20}}
+            onPress={() => navigation.navigate('Notification')}>
+            {notificationLength > 0 ? (
+              <Image
+                source={require('../assets/image/notificationWithAlert.png')}
+                style={{height: 26, width: 26}}
+              />
+            ) : (
+              <Image
+                source={require('../assets/image/Notification.png')}
+                style={{height: 26, width: 26}}
+              />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setShowMenu(prevState => !prevState)}>
             <Image
-              source={require('../assets/image/notificationWithAlert.png')}
+              source={require('../assets/image/dots.png')}
               style={{height: 26, width: 26}}
             />
-          ) : (
-            <Image
-              source={require('../assets/image/Notification.png')}
-              style={{height: 26, width: 26}}
-            />
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setShowMenu(prevState => !prevState)}>
-          <Image
-            source={require('../assets/image/dots.png')}
-            style={{height: 26, width: 26}}
-          />
-        </TouchableOpacity>
-        <View>{showMenu && <AppMenu />}</View>
-      </View>
-      <View
-        style={styles.infoContainer}>
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => navigation.navigate('Outlet')}>
-          <Image
-            source={require('../assets/image/wallet-2.png')}
-            style={{width: 100, height: 100}}
-          />
-          <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
-            {toggleLanguage
-              ? 'Outlet performance & Call Card'
-              : 'আউটলেট পারফরম্যান্স এবং কল কার্ড'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => navigation.navigate('CommunicationScreen')}>
-          <Image
-            source={require('../assets/image/wallet.png')}
-            style={{width: 100, height: 100}}
-          />
-          <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
-            {toggleLanguage ? 'Communication Pannel' : 'কমিউন্টিশন প্যানেল'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <View
-        style={{
-          flexDirection: 'row',
-          marginHorizontal: 20,
-          justifyContent: 'space-around',
-        }}>
-        <View style={styles.newContainer}>
+          </TouchableOpacity>
+          <View>{showMenu && <AppMenu />}</View>
+        </View>
+        <View style={styles.infoContainer}>
           <TouchableOpacity
             style={styles.card}
-            onPress={() => navigation.navigate('EASAdvocacy')}>
-            <Icon name="envelope" size={100} color={colors.primary} solid />
+            onPress={() => navigation.navigate('Outlet')}>
+            <Image
+              source={require('../assets/image/wallet-2.png')}
+              style={{width: 100, height: 100}}
+            />
             <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
-              {toggleLanguage ? 'EAS Advocacy' : 'ইএএস এডভোকেসি'}
+              {toggleLanguage
+                ? 'Outlet performance & Call Card'
+                : 'আউটলেট পারফরম্যান্স এবং কল কার্ড'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('CommunicationScreen')}>
+            <Image
+              source={require('../assets/image/wallet.png')}
+              style={{width: 100, height: 100}}
+            />
+            <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
+              {toggleLanguage ? 'Communication Pannel' : 'কমিউন্টিশন প্যানেল'}
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.newContainer}>
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => navigation.navigate('SelectIncentive')}>
-            <IconMaterial name="gift-outline" size={100} color={colors.primary} solid />
-            <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
-              {toggleLanguage ? 'Select Incentive' : 'ইন্সেন্টিভ নির্বাচন'}
-            </Text>
-          </TouchableOpacity>
+        <View
+          style={{
+            flexDirection: 'row',
+            marginHorizontal: 20,
+            justifyContent: 'space-around',
+          }}>
+          <View style={styles.newContainer}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => navigation.navigate('EASAdvocacy')}>
+              <Icon name="envelope" size={100} color={colors.primary} solid />
+              <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
+                {toggleLanguage ? 'EAS Advocacy' : 'ইএএস এডভোকেসি'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.newContainer}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => navigation.navigate('SelectIncentive')}>
+              <IconMaterialCommunity
+                name="gift-outline"
+                size={100}
+                color={colors.primary}
+                solid
+              />
+              <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
+                {toggleLanguage ? 'Select Incentive' : 'ইন্সেন্টিভ নির্বাচন'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-      <View style={styles.cardContainer}>
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => navigation.navigate('DistributionIncentive')}>
-          <IconMaterial name="distribute-vertical-center" size={100} color={colors.primary} solid />
-          <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
-            {toggleLanguage ? 'Distribution Incentive' : 'ডিস্ট্রিবিউশন ইন্সেন্টিভ '}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            marginHorizontal: 20,
+            justifyContent: 'space-around',
+          }}>
+          <View style={styles.newContainer}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => navigation.navigate('DistributionIncentive')}>
+              <IconMaterialCommunity
+                name="distribute-vertical-center"
+                size={100}
+                color={colors.primary}
+                solid
+              />
+              <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
+                {toggleLanguage
+                  ? 'Distribution Incentive'
+                  : 'ডিস্ট্রিবিউশন ইন্সেন্টিভ '}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.newContainer}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => navigation.navigate('PhotoFrame')}>
+              <IconMaterial
+                name="add-a-photo"
+                size={100}
+                color={colors.primary}
+                solid
+              />
+              <Text style={{fontWeight: 'bold', textAlign: 'center'}}>
+                {toggleLanguage ? 'Photo Frame' : 'ফটো ফ্রেম'}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.marginBottom} />
+          </View>
+        </View>
       </ScrollView>
     </AppScreen>
   );
@@ -308,7 +344,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
-  },infoContainer:{
+  },
+  infoContainer: {
     flexDirection: 'row',
     marginHorizontal: 20,
     justifyContent: 'space-around',
@@ -325,10 +362,15 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   newContainer: {
-    margin: 25,
+    marginTop: 25,
+    marginLeft: 25,
+    marginRight: 25,
   },
   cardContainer: {
     marginLeft: 25,
     marginBottom: 30,
+  },
+  marginBottom: {
+    marginBottom: 25,
   },
 });

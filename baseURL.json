@@ -1,6 +1,6 @@
 {
   "baseURL": "http://bandhan.fifo-tech.com",
   "baseMediaURL": "http://bandhan.fifo-tech.com/app/media/",
-  "incentiveMediaURL": "http://5.182.17.51:5000/incentiveMedia",
+  "incentiveMediaURL": "http://5.182.17.51:5000/incentiveMedia/",
   "baseURL_Server2" : "http://5.182.17.51:5000"
 }

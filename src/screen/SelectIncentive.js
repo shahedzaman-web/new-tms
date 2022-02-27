@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Modal,
 } from 'react-native';
 import React, {useContext, useEffect, useState} from 'react';
 import AppScreen from '../components/AppScreen';
@@ -19,13 +20,17 @@ import {
 } from 'react-native-responsive-screen';
 import axios from 'axios';
 import colors from '../config/colors';
+import Icon from 'react-native-vector-icons/AntDesign';
+
 import {baseURL_Server2, incentiveMediaURL} from './../../baseURL.json';
 const SelectIncentive = () => {
   const [dropdown, setDropdown] = useState('');
   const [salesPoint, setSalesPoint] = useState({});
   const [selectIncentive1, setSelectIncentive1] = useState(null);
   const [selectIncentive2, setSelectIncentive2] = useState(null);
-  const [showIncentive, setShowIncentive] = useState(false);
+  const [selectIncentivePhoto1, setSelectIncentivePhoto1] = useState(null);
+  const [selectIncentivePhoto2, setSelectIncentivePhoto2] = useState(null);
+  const [showIncentive, setShowIncentive] = useState(true);
   const [outlet, setOutlet] = useState(null);
   const languageContext = useContext(LanguageContext);
   const {toggleLanguage} = languageContext;
@@ -34,22 +39,30 @@ const SelectIncentive = () => {
   const [typeOne, setTypeOne] = React.useState([]);
   const [typeTwo, setTypeTwo] = React.useState([]);
   const [loading, setLoading] = useState(false);
-  console.log(JSON.stringify(userInfoContext));
-
-  // /api/getSelectedIncentives
-  const getSelectedIncentive = async () => {
-    const res = await axios.get(
-      `${baseURL_Server2}/api/getSelectedIncentives?search=${
-        dropdown.split('(')[1].split(')')[0]
-      }`,
-    );
-    console.log(res.data);
-  };
+  const [selectIncentiveData, setSelectIncentiveData] = useState([]);
+  const [editStatus, setEditStatus] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
 
   React.useLayoutEffect(() => {
-    getSelectedIncentive();
-  }, [dropdown]);
+    const getSelectedIncentive = async () => {
+      if (dropdown !== '') {
+        const res = await axios.get(
+          `${baseURL_Server2}/api/getSelectedIncentives?search=${
+            dropdown.split('(')[1].split(')')[0]
+          }`,
+        );
 
+        res?.data?.data.length !== 0
+          ? (setSelectIncentiveData(res.data.data[0]), setShowIncentive(false))
+          : (setSelectIncentiveData([]), setShowIncentive(true));
+        console.log('data---------->', res.data.data);
+      }
+    };
+    getSelectedIncentive();
+  }, [dropdown, showIncentive]);
+  console.log({selectIncentiveData});
+  console.log({showIncentive});
   const getTypeOne = async () => {
     const response = await axios.get(baseURL_Server2 + '/api/getTypeOne');
     if (response.status !== 200) {
@@ -89,6 +102,24 @@ const SelectIncentive = () => {
     getTypeTwo();
   }, []);
 
+  const getEditStatusApi = async () => {
+    const response = await axios.get(baseURL_Server2 + '/api/getEditStatus');
+    console.log('getEditStatus----->', response);
+    if (response.status !== 200) {
+      Alert.alert('Error', 'Something went wrong');
+    } else {
+      console.log('getEditStatus----->', response.data);
+      response.data.status === 'inactive'
+        ? setEditStatus(false)
+        : setEditStatus(true);
+    }
+  };
+
+  React.useLayoutEffect(() => {
+    getEditStatusApi();
+  }, [editStatus]);
+
+  console.log({editStatus});
   useEffect(() => {
     if (userInfo.outletCode) {
       setOutlet(userInfo.outletCode);
@@ -115,6 +146,8 @@ const SelectIncentive = () => {
         outletName: dropdown.split('(')[0],
         incentiveOne: selectIncentive1,
         incentiveTwo: selectIncentive2,
+        incentiveOnePhoto: selectIncentivePhoto1,
+        incentiveTwoPhoto: selectIncentivePhoto2,
       };
 
       const response = await axios.post(
@@ -130,6 +163,7 @@ const SelectIncentive = () => {
       if (response.status !== 200) {
         console.log({response});
         setLoading(false);
+        setShowIncentive(true);
         Alert.alert('Error', response?.data?.message);
       } else {
         console.log({response});
@@ -139,6 +173,67 @@ const SelectIncentive = () => {
     } else {
       setLoading(false);
       Alert.alert('Error', 'Please select all fields');
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    setEditLoading(true);
+    const payload = {
+      region: userInfo.region[0].name,
+      regionId: userInfo.region[0].id,
+      area: userInfo.area[0].name,
+      areaId: userInfo.area[0].id,
+      territory: userInfo.territory[0].name,
+      territoryId: userInfo.territory[0].id,
+      salesPoint: salesPoint.name,
+      salesPointId: salesPoint.id,
+      tmsName: userInfo.name,
+      tmsEnroll: userInfo.enrollId,
+      tmsMobile: userInfo.phone,
+      outletCode: dropdown.split('(')[1].split(')')[0],
+      outletName: dropdown.split('(')[0],
+      incentiveOne:
+        selectIncentive1 !== null
+          ? selectIncentive1
+          : selectIncentiveData.incentiveOne,
+      incentiveTwo:
+        selectIncentive2 !== null
+          ? selectIncentive2
+          : selectIncentiveData.incentiveTwo,
+      incentiveOnePhoto:
+        selectIncentivePhoto1 !== null
+          ? selectIncentivePhoto1
+          : selectIncentiveData.incentiveOnePhoto,
+      incentiveTwoPhoto:
+        selectIncentivePhoto2 !== null
+          ? selectIncentivePhoto2
+          : selectIncentiveData.incentiveTwoPhoto,
+    };
+    console.log({payload});
+
+    const response = await axios.put(
+      baseURL_Server2 +
+        `/api/updateOneOutletIncentive/:${
+          dropdown.split('(')[1].split(')')[0]
+        }`,
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    console.log({response});
+    if (response.status !== 200) {
+      setShowEditModal(false);
+
+      Alert.alert('Error', response?.data?.message);
+    } else {
+      setEditLoading(false);
+      getTypeOne();
+      getTypeTwo();
+      setEditLoading(false);
+      Alert.alert('Success', response?.data?.message);
     }
   };
 
@@ -192,24 +287,167 @@ const SelectIncentive = () => {
             )}
           </View>
         </View>
-        {showIncentive ? (
-          <View style={styles.incentiveContainer}>
-            <Text style={styles.titleText}>
-              {toggleLanguage ? 'Select Incentive' : 'ইন্সেন্টিভ নির্বাচন করুন'}
+        {dropdown !== '' && (
+          <>
+            {showIncentive ? (
+              <View style={styles.incentiveContainer}>
+                <Text style={styles.titleText}>
+                  {toggleLanguage
+                    ? 'Select Incentive'
+                    : 'ইন্সেন্টিভ নির্বাচন করুন'}
+                </Text>
+                <View style={styles.dropdownContainer}>
+                  <Text style={styles.text}>
+                    {toggleLanguage ? 'Incentive 1' : 'ইন্সেন্টিভ ১'}
+                  </Text>
+                  <SelectCountry
+                    style={styles.dropdownImage}
+                    selectedTextStyle={styles.selectedTextStyle}
+                    placeholderStyle={styles.placeholderStyle}
+                    imageStyle={styles.imageStyle}
+                    inputSearchStyle={styles.inputSearchStyle}
+                    iconStyle={styles.iconStyle}
+                    search
+                    maxHeight={220}
+                    value={selectIncentive1}
+                    data={typeOne}
+                    valueField="value"
+                    labelField="label"
+                    imageField="image"
+                    placeholder="Select Incentive 1"
+                    searchPlaceholder="Search..."
+                    onChange={e => {
+                      return (
+                        setSelectIncentive1(e.value),
+                        setSelectIncentivePhoto1(
+                          e.image.uri.split(incentiveMediaURL)[1],
+                        )
+                      );
+                    }}
+                  />
+                </View>
+                <View style={styles.dropdownContainer}>
+                  <Text style={styles.text}>
+                    {toggleLanguage ? 'Incentive 2' : 'ইন্সেন্টিভ ২'}
+                  </Text>
+                  <SelectCountry
+                    style={styles.dropdownImage}
+                    selectedTextStyle={styles.selectedTextStyle}
+                    placeholderStyle={styles.placeholderStyle}
+                    imageStyle={styles.imageStyle}
+                    inputSearchStyle={styles.inputSearchStyle}
+                    iconStyle={styles.iconStyle}
+                    search
+                    maxHeight={150}
+                    value={selectIncentive2}
+                    data={typeTwo}
+                    valueField="value"
+                    labelField="label"
+                    imageField="image"
+                    placeholder="Select Incentive 2"
+                    searchPlaceholder="Search..."
+                    onChange={e => {
+                      return (
+                        setSelectIncentive2(e.value),
+                        setSelectIncentivePhoto2(
+                          e.image.uri.split(incentiveMediaURL)[1],
+                        )
+                      );
+                    }}
+                  />
+                </View>
+                <View style={styles.submitContainer}>
+                  <TouchableOpacity
+                    onPress={handleSubmit}
+                    style={styles.submitBtn}>
+                    {loading ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Text style={styles.submitText}>
+                        {toggleLanguage ? 'Submit' : 'জমা দিন'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.viewIncentiveContainer}>
+                <Text style={styles.titleText}>
+                  {toggleLanguage ? 'View Incentive' : 'ইন্সেন্টিভ দেখুন'}
+                </Text>
+                <View style={styles.dropdownContainer}>
+                  <Text style={styles.text}>
+                    {toggleLanguage ? 'Incentive 1' : 'ইন্সেন্টিভ ১'}
+                  </Text>
+                  <View style={styles.incentiveViewContainer}>
+                    <Image
+                      style={styles.imageStyle}
+                      source={{
+                        uri: `${incentiveMediaURL}${selectIncentiveData.incentiveOnePhoto}`,
+                      }}
+                    />
+                    <Text style={styles.text}>
+                      {selectIncentiveData.incentiveOne}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.dropdownContainer}>
+                  <Text style={styles.text}>
+                    {toggleLanguage ? 'Incentive 2' : 'ইন্সেন্টিভ ২'}
+                  </Text>
+                  <View style={styles.incentiveViewContainer}>
+                    <Image
+                      style={styles.imageStyle}
+                      source={{
+                        uri: `${incentiveMediaURL}${selectIncentiveData.incentiveTwoPhoto}`,
+                      }}
+                    />
+                    <Text style={styles.text}>
+                      {selectIncentiveData.incentiveTwo}
+                    </Text>
+                  </View>
+                </View>
+                {!editStatus && (
+                  <View style={styles.editBtnContainer}>
+                    <TouchableOpacity
+                      onPress={() => setShowEditModal(true)}
+                      style={styles.editBtn}>
+                      <Text style={styles.editText}>
+                        {toggleLanguage ? 'Edit' : 'পরিবর্তন'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            )}
+          </>
+        )}
+      </View>
+      <Modal animationType="slide" transparent={true} visible={showEditModal}>
+        <View style={styles.modalContainer}>
+          <View style={styles.closedBtnContainer}>
+            <TouchableOpacity onPress={() => setShowEditModal(false)}>
+              <Icon name="closecircle" size={24} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>
+              {toggleLanguage ? 'Edit Incentive' : 'ইন্সেন্টিভ পরিবর্তন'}
             </Text>
-            <View style={styles.dropdownContainer}>
-              <Text style={styles.text}>
+            <View style={styles.modalDropdownContainer}>
+              <Text style={styles.modalText}>
                 {toggleLanguage ? 'Incentive 1' : 'ইন্সেন্টিভ ১'}
               </Text>
               <SelectCountry
-                style={styles.dropdownImage}
+                style={styles.modalDropdownImage}
                 selectedTextStyle={styles.selectedTextStyle}
                 placeholderStyle={styles.placeholderStyle}
                 imageStyle={styles.imageStyle}
                 inputSearchStyle={styles.inputSearchStyle}
                 iconStyle={styles.iconStyle}
                 search
-                maxHeight={220}
+                maxHeight={150}
                 value={selectIncentive1}
                 data={typeOne}
                 valueField="value"
@@ -218,16 +456,21 @@ const SelectIncentive = () => {
                 placeholder="Select Incentive 1"
                 searchPlaceholder="Search..."
                 onChange={e => {
-                  return setSelectIncentive1(e.value);
+                  return (
+                    setSelectIncentive1(e.value),
+                    setSelectIncentivePhoto1(
+                      e.image.uri.split(incentiveMediaURL)[1],
+                    )
+                  );
                 }}
               />
             </View>
-            <View style={styles.dropdownContainer}>
-              <Text style={styles.text}>
+            <View style={styles.modalDropdownContainer}>
+              <Text style={styles.modalText}>
                 {toggleLanguage ? 'Incentive 2' : 'ইন্সেন্টিভ ২'}
               </Text>
               <SelectCountry
-                style={styles.dropdownImage}
+                style={styles.modalDropdownImage}
                 selectedTextStyle={styles.selectedTextStyle}
                 placeholderStyle={styles.placeholderStyle}
                 imageStyle={styles.imageStyle}
@@ -243,13 +486,21 @@ const SelectIncentive = () => {
                 placeholder="Select Incentive 2"
                 searchPlaceholder="Search..."
                 onChange={e => {
-                  return setSelectIncentive2(e.value);
+                  return (
+                    setSelectIncentive2(e.value),
+                    setSelectIncentivePhoto2(
+                      e.image.uri.split(incentiveMediaURL)[1],
+                    )
+                  );
                 }}
               />
             </View>
+
             <View style={styles.submitContainer}>
-              <TouchableOpacity onPress={handleSubmit} style={styles.submitBtn}>
-                {loading ? (
+              <TouchableOpacity
+                onPress={handleEditSubmit}
+                style={styles.submitBtn}>
+                {editLoading ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
                   <Text style={styles.submitText}>
@@ -259,64 +510,8 @@ const SelectIncentive = () => {
               </TouchableOpacity>
             </View>
           </View>
-        ) : (
-          <View style={styles.viewIncentiveContainer}>
-            <Text style={styles.titleText}>
-              {toggleLanguage ? 'View Incentive' : 'ইন্সেন্টিভ দেখুন'}
-            </Text>
-            <View style={styles.dropdownContainer}>
-              <Text style={styles.text}>
-                {toggleLanguage ? 'Incentive 1' : 'ইন্সেন্টিভ ১'}
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-around',
-                  alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: colors.primary,
-                  padding: 5,
-                  borderRadius: 5,
-                }}>
-                <Image
-                  style={styles.imageStyle}
-                  source={{
-                    uri: 'https://www.vigcenter.com/public/all/images/default-image.jpg',
-                  }}
-                />
-                <Text style={styles.text}>
-                  {toggleLanguage ? 'Country 1' : 'দেশ ১'}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.dropdownContainer}>
-              <Text style={styles.text}>
-                {toggleLanguage ? 'Incentive 2' : 'ইন্সেন্টিভ ২'}
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-around',
-                  alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: colors.primary,
-                  padding: 5,
-                  borderRadius: 5,
-                }}>
-                <Image
-                  style={styles.imageStyle}
-                  source={{
-                    uri: 'https://www.vigcenter.com/public/all/images/default-image.jpg',
-                  }}
-                />
-                <Text style={styles.text}>
-                  {toggleLanguage ? 'Country 2' : 'দেশ ২'}
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-      </View>
+        </View>
+      </Modal>
     </AppScreen>
   );
 };
@@ -410,5 +605,82 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  editBtnContainer: {
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    marginRight: 10,
+    marginVertical: 12,
+  },
+  editBtn: {
+    backgroundColor: colors.primary,
+    padding: 12,
+    borderRadius: 10,
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  editText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  incentiveViewContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.primary,
+    padding: 5,
+    borderRadius: 5,
+  },
+  modalContainer: {
+    margin: 20,
+    justifyContent: 'center',
+    marginTop: hp('10%'),
+    backgroundColor: 'white',
+    borderRadius: 10,
+    width: wp('90%'),
+    height: hp('68%'),
+    padding: 20,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  modalView: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: colors.primary,
+  },
+
+  modalDropdownContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    margin: 2,
+  },
+  modalText: {
+    fontSize: 16,
+    width: wp('22%'),
+  },
+  modalDropdownImage: {
+    width: wp('55%'),
+    backgroundColor: 'white',
+    resizeMode: 'contain',
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 5,
+    margin: 16,
+    height: 110,
+    paddingHorizontal: 8,
+  },
+  closedBtnContainer: {
+    flexDirection: 'row',
+    width: wp('90%'),
+    justifyContent: 'flex-end',
+    marginRight: 30,
+    marginVertical: 2,
   },
 });
