@@ -9,7 +9,7 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import React, {useContext, useEffect, useLayoutEffect, useState} from 'react';
+import React, {useContext, useEffect,  useState} from 'react';
 import AppScreen from '../components/AppScreen';
 import LanguageContext from '../hooks/languageContext';
 import AppTitle from '../components/AppTitle';
@@ -52,6 +52,7 @@ const DistributionIncentive = () => {
   const [otp, setOtp] = useState('');
   const [submitOtpLoading, setSubmitOtpLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+ 
   const handleSignature1 = signature => {
     console.log(signature);
     setSignature1(signature);
