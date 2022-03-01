@@ -12,7 +12,6 @@ import UserInfoContext from '../hooks/userInfoContext';
 import {baseURL} from '../../baseURL';
 import AuthContext from '../hooks/authContext';
 
-
 const DrawerContains = () => {
   const userInfoContext = useContext(UserInfoContext);
   const authContext = useContext(AuthContext);
@@ -55,7 +54,6 @@ const DrawerContains = () => {
     );
   }
 
-  // console.log('userInfoContext', userInfoContext.userInfo);
   return (
     <View style={styles.container}>
       <SafeAreaView>
@@ -68,8 +66,8 @@ const DrawerContains = () => {
           }}>
           <View style={{alignItems: 'center'}}>
             <Image
-              source={require('../assets/image/proPic.png')}
-              style={styles.image}
+              source={require('../assets/image/userPic.jpg')}
+              style={{height: 40, width: 40}}
             />
 
             <Text style={styles.text}>{userInfo?.name}</Text>
@@ -77,13 +75,15 @@ const DrawerContains = () => {
             <Text style={styles.subText}>{userInfo?.email}</Text>
           </View>
           <View style={[styles.line, styles.mt12]} />
-          <Text style={styles.textDes}>{userInfo?.region?.name}</Text>
+          <Text style={styles.textDes}>{userInfo?.region[0]?.name}</Text>
           <View style={[styles.line, styles.mt12]} />
-          <Text style={styles.textDes}>{userInfo?.area?.name}</Text>
+          <Text style={styles.textDes}>{userInfo?.area[0]?.name}</Text>
           <View style={[styles.line, styles.mt12]} />
-          <Text style={styles.textDes}>{userInfo?.territory?.name}</Text>
+          <Text style={styles.textDes}>{userInfo?.territory[0]?.name}</Text>
           <View style={[styles.line, styles.mt12]} />
-          <Text style={styles.textDes}>Total Allocatated outlet</Text>
+          <Text style={styles.textDes}>
+            Total Outlet : {userInfo?.outletCode.length}
+          </Text>
           {/* <View style={[styles.line, styles.mt12]} />
           <Text style={styles.textDes}>DOB</Text> */}
           <View style={[styles.line, styles.mt12]} />

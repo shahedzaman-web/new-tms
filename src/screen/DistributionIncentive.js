@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
   StyleSheet,
   Text,
@@ -9,7 +10,7 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import React, {useContext, useEffect,  useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import AppScreen from '../components/AppScreen';
 import LanguageContext from '../hooks/languageContext';
 import AppTitle from '../components/AppTitle';
@@ -28,6 +29,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import axios from 'axios';
 import {TextInput} from 'react-native-gesture-handler';
 import LocationContext from '../hooks/locationContext';
+import {baseURL_Server2} from '../../baseURL';
 const DistributionIncentive = () => {
   const [dropdown, setDropdown] = useState(null);
   const [outlet, setOutlet] = useState(null);
@@ -52,40 +54,41 @@ const DistributionIncentive = () => {
   const [otp, setOtp] = useState('');
   const [submitOtpLoading, setSubmitOtpLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
- 
+
   const handleSignature1 = signature => {
-    console.log(signature);
     setSignature1(signature);
     setViewSignatureModal1(false);
   };
-  console.log({location});
+
   const handleVerifyRetailer = async () => {
-    if (image1 && image2 && signature1 && signature2) {
-      setSubmitOtpLoading(true);
-      const response = await axios.post(
-        'http://5.182.17.51:5000/api/verifyRetailer',
-        {
-          retailerNumber: dropdown,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
+    try {
+      if (image1 && image2 && signature1 && signature2) {
+        setSubmitOtpLoading(true);
+        const response = await axios.post(
+          baseURL_Server2 + '/api/verifyRetailer',
+          {
+            retailerNumber: distributionData?.phone,
           },
-        },
-      );
-      console.log({response});
-      if (response.status === 200) {
-        setSubmitOtpLoading(false);
-        setVerifyOtpModal(true);
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+        if (response.status !== 200) {
+          Alert.alert('Error', 'Something went wrong.');
+        } else {
+          setSubmitOtpLoading(false);
+          setVerifyOtpModal(true);
+        }
       } else {
-        Alert.alert('Error', 'Something went wrong.');
+        alert('Please Fill All Fields');
       }
-    } else {
-      Alert.alert('Error', 'Please fill all the fields');
+    } catch (error) {
+      alert(error.response.data);
     }
   };
   const handleSignature2 = signature => {
-    console.log(signature);
     setSignature2(signature);
     setViewSignatureModal2(false);
   };
@@ -93,20 +96,19 @@ const DistributionIncentive = () => {
   const handleEmpty = () => {
     console.log('Empty');
   };
-  console.log('userInfoContext---------->', userInfoContext);
   useEffect(() => {
     if (userInfoContext.userInfo.outletCode) {
       setOutlet(userInfoContext.userInfo.outletCode);
     }
   }, [userInfoContext.userInfo.outletCode]);
-  console.log('dropdown value------------>', dropdown);
   React.useEffect(() => {
     const getDistributionData = async () => {
       if (dropdown) {
         setLoading(true);
-        const response = await axios.get(
-          `http://5.182.17.51:5000/api/outlet-target-retailer/${dropdown}`,
-        );
+        const url = baseURL_Server2 + `/api/outlet-target-retailer/${dropdown}`;
+        console.log({url});
+        const response = await axios.get(url);
+        console.log('response----------->', response);
         if (response.status === 200) {
           setDistributionData(response.data);
           setLoading(false);
@@ -153,13 +155,11 @@ const DistributionIncentive = () => {
       setImage2(image);
     });
   };
-  console.log({userInfo});
 
-  const handleSubmit = async () => {
-  
+  const handleDistributionSubmit = async () => {
     const payload = {
-      region: 'userInfo.region[0].name',
-      area: 'userInfo?.area[0].name',
+      region: userInfo?.region[0]?.name,
+      area: userInfo?.area[0]?.name,
       retailerName: distributionData?.name + '',
       retailerPhone: distributionData?.phone,
       retailerAddress: distributionData?.address,
@@ -168,36 +168,43 @@ const DistributionIncentive = () => {
       sales: distributionData?.totalSales,
       incentivesOne: distributionData?.incentivesOne,
       incentivesTwo: distributionData?.incentivesTwo,
-      location: `L ${location.coords.latitude}, L ${location.coords.longitude}`,
-      territory: 'userInfo?.territory?.name',
+      location: `${location.coords.latitude}, ${location.coords.longitude}`,
+      territory: userInfo?.territory[0]?.name,
       salesPoint: salesPoint.name,
-      proofPhotoOne: base64Image1,
-      proofPhotoTwo: base64Image2,
+      proofPhotoOne: base64Image1?.image?.uri,
+      proofPhotoTwo: base64Image2?.image?.uri,
       retailerSign: signature1,
       tmsSign: signature2,
       tms: userInfo.name,
       typedOtp: otp,
       createdAt: moment(new Date()).format('YYYY-MM-DD'),
     };
-    console.log({payload});
+
     try {
       setSubmitLoading(true);
       const response = await axios.post(
-        'http://5.182.17.51:5000/api/verifyOTP',
+        'http://172.16.1.133:5000/api/verifyOTP',
         JSON.stringify(payload),
         {
           headers: {'Content-type': 'application/json'},
         },
       );
-      if (response.statusText !== 'OK') {
-        setSubmitLoading(false)
-        Alert.alert('danger', 'Something Went Wrong');
+      if (response.status === 200) {
+        alert(response.data?.message);
+        setSubmitLoading(false);
+        setVerifyOtpModal(false);
+        setDropdown(null);
+        setImage1(null)
+        setImage2(null)
+        setBase64Image1("")
+        setBase64Image2("")
+        setSignature1(null)
+        setSignature2(null)
       } else {
-         setSubmitLoading(false)
-        console.log(response);
+        alert('Something went wrong.');
       }
     } catch (e) {
-      console.log(e.response);
+      console.log({e});
     }
   };
 
@@ -208,7 +215,6 @@ const DistributionIncentive = () => {
       </View>
     );
   };
-  console.log('distributionData------------------>', distributionData);
 
   return (
     <AppScreen>
@@ -355,12 +361,20 @@ const DistributionIncentive = () => {
                     onPress={() =>
                       setViewSignatureModal1(prevState => !prevState)
                     }>
-                    <Icon
-                      name="signature"
-                      size={100}
-                      color={colors.primary}
-                      solid
-                    />
+                      {signature1 ? (
+          <Image
+            resizeMode={"contain"}
+            style={{  width: wp('70%'),
+            height: hp('16%'), }}
+            source={{ uri: signature1 }}
+          />
+        ) : <Icon
+        name="signature"
+        size={100}
+        color={colors.primary}
+        solid
+      />}
+                    
                     <Text style={styles.modalBtnText}>
                       {toggleLanguage
                         ? 'Retailer Signature '
@@ -370,12 +384,19 @@ const DistributionIncentive = () => {
                   <TouchableOpacity
                     style={styles.signatureBtn}
                     onPress={() => setViewSignatureModal2(true)}>
-                    <Icon
-                      name="signature"
-                      size={100}
-                      color={colors.primary}
-                      solid
-                    />
+                    {signature2 ? (
+          <Image
+            resizeMode={"contain"}
+            style={{  width: wp('70%'),
+            height: hp('16%'), }}
+            source={{ uri: signature2 }}
+          />
+        ) : <Icon
+        name="signature"
+        size={100}
+        color={colors.primary}
+        solid
+      />}
                     <Text style={styles.modalBtnText}>
                       {toggleLanguage ? 'TMS Signature' : 'টিএমএস স্বাক্ষর'}
                     </Text>
@@ -475,7 +496,7 @@ const DistributionIncentive = () => {
                             : 'ভেরিফাই রিটেলার'}
                         </Text>
                         <View style={styles.modalInputContainer}>
-                          <Text>
+                          <Text style={styles.otpText}>
                             {toggleLanguage ? 'OTP Code' : 'অটিপি কোড'}
                           </Text>
                           <TextInput
@@ -490,7 +511,7 @@ const DistributionIncentive = () => {
                           />
                         </View>
                         <TouchableOpacity
-                          onPress={handleSubmit}
+                          onPress={() => handleDistributionSubmit()}
                           style={styles.submitBtnModal}>
                           <Text style={styles.submitBtnText}>
                             {submitLoading && (
@@ -639,7 +660,7 @@ const styles = StyleSheet.create({
     top: hp('25%'),
     alignItems: 'center',
     width: wp('90%'),
-    height: hp('30%'),
+    height: hp('38%'),
     backgroundColor: 'white',
     elevation: 5,
     borderRadius: 5,
@@ -649,16 +670,21 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   modalInputContainer: {
+    paddingVertical: 12,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
+  otpText: {
+    fontWeight: 'bold',
+  },
+
   titleTextModal: {
     fontWeight: 'bold',
     color: colors.primary,
     fontSize: 18,
-    paddingVertical: 5,
-    textAlign: 'center',
+
+    paddingVertical: 20,
   },
   submitBtnModal: {
     backgroundColor: colors.primary,
@@ -671,6 +697,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   modalInput: {
+    width: wp('55%'),
     borderWidth: 1,
     borderColor: colors.primary,
     borderRadius: 5,

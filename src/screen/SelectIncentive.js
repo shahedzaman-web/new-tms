@@ -65,6 +65,7 @@ const SelectIncentive = () => {
   // console.log({showIncentive});
   const getTypeOne = async () => {
     const response = await axios.get(baseURL_Server2 + '/api/getTypeOne');
+    console.log({response});
     if (response.status !== 200) {
       Alert.alert('Error', 'Something went wrong');
     } else {

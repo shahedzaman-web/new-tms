@@ -17,6 +17,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import colors from '../config/colors';
 import {Dropdown} from 'react-native-element-dropdown';
 import axios from 'axios';
+import {baseURL_Server2} from './../../baseURL.json';
 
 const PhotoFrame = () => {
   const [dropdown, setDropdown] = React.useState(null);
@@ -30,10 +31,7 @@ const PhotoFrame = () => {
   const [loading, setLoading] = React.useState(false);
   const [salesPoint, setSalesPoint] = React.useState({});
   const [outletName, setOutletName] = React.useState();
-  console.log(
-    'userInfoContext.userInfo----------->',
-    JSON.stringify(userInfoContext.userInfo),
-  );
+
   React.useEffect(() => {
     if (userInfoContext.userInfo.outletCode) {
       setOutlet(userInfoContext.userInfo.outletCode);
@@ -58,41 +56,40 @@ const PhotoFrame = () => {
       setImage(image);
     });
   };
-
+  // console.log('userInfoContext.userInfo11----------->', userInfo);
   const handleSubmit = async () => {
     if (image) {
       try {
         setLoading(true);
         const payload = {
-          region: 'userInfo.region[0].name',
-          regionId: 'userInfo.region[0].id',
-          area: 'userInfo?.area[0].name',
-          areaId: userInfo?.area[0].id,
-          territory: userInfo?.territory[0].name,
-          territoryId: userInfo?.territory[0].id,
+          region: userInfo?.region[0]?.name,
+          regionId: userInfo?.region[0]?.id,
+          area: userInfo?.area[0]?.name,
+          areaId: userInfo?.area[0]?.id,
+          territory: userInfo?.territory[0]?.name,
+          territoryId: userInfo?.territory[0]?.id,
           salesPoint: salesPoint.name,
           salesPointId: salesPoint.id,
           tmsName: userInfo.name,
           tmsEnroll: userInfo.enrollId,
           tmsMobile: userInfo.phone,
           outletCode: dropdown,
-          outletName: outletName,
-          framePhoto: base64Image,
+          outletName: outletName.split('(')[0],
+          framePhoto: base64Image?.image?.uri,
         };
         const response = await axios.post(
-          'http://5.182.17.51:5000/api/addPhotoFrame',
+          baseURL_Server2 + '/api/addPhotoFrame',
           JSON.stringify(payload),
           {
             headers: {'Content-type': 'application/json'},
           },
         );
-        console.log({response});
-        if (response.statusText !== 'OK') {
+        if (response.status !== 200) {
           setLoading(false);
           Alert.alert('danger', 'Something Went Wrong');
         } else {
           setLoading(false);
-          console.log(response);
+          alert(response.data.message);
         }
       } catch (e) {
         console.log(e.response);
