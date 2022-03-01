@@ -29,6 +29,7 @@ import AppMenu from '../components/AppMenu';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IconMaterialCommunity from 'react-native-vector-icons/MaterialCommunityIcons';
 import IconMaterial from 'react-native-vector-icons/MaterialIcons';
+import LocationContext from '../hooks/locationContext';
 
 Geocoder.init('AIzaSyD2teCqM8UnfoEvVLqzlwf7iHWPrfIJkvY');
 
@@ -41,11 +42,11 @@ const HomeScreen = ({navigation}) => {
   const [observing, setObserving] = useState(false);
   const [foregroundService, setForegroundService] = useState(false);
   const [useLocationManager, setUseLocationManager] = useState(false);
-  const [location, setLocation] = useState(null);
-
   const notificationContext = useContext(NotificationContext);
   const {notifications} = notificationContext;
   const languageContext = useContext(LanguageContext);
+  const locationContext = useContext(LocationContext);
+  const {setLocation} = locationContext;
   const {toggleLanguage} = languageContext;
   const [notificationLength, setNotificationLength] = useState(0);
   useEffect(() => {

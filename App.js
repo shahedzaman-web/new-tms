@@ -38,6 +38,9 @@ import AddressContext from './src/hooks/addressContext';
 // user info context
 import UserInfoContext from './src/hooks/userInfoContext';
 
+// location context
+import LocationContext from './src/hooks/locationContext';
+
 import io from 'socket.io-client';
 import NotificationContext from './src/hooks/notificationContext';
 import GuidelinePannel from './src/screen/GuidelinePannel';
@@ -116,7 +119,7 @@ const App = () => {
   const [userInfo, setUserInfo] = useState({});
   const [notifications, setNotifications] = useState([]);
   const [toggleLanguage, setToggleLanguage] = useState(true);
-
+  const [location, setLocation] = useState(null);
   const getLanguage = async () => {
     try {
       const value = await AsyncStorage.getItem('language');
@@ -217,26 +220,28 @@ const App = () => {
   return (
     <SafeAreaProvider>
       <NotificationContext.Provider value={{notifications, setNotifications}}>
-        <AuthContext.Provider value={{user, setUser}}>
-          <AddressContext.Provider value={{address, setAddress}}>
-            <LanguageContext.Provider
-              value={{toggleLanguage, setToggleLanguage}}>
-              <UserInfoContext.Provider value={{userInfo, setUserInfo}}>
-                <NavigationContainer>
-                  <Stack.Navigator
-                    screenOptions={{headerShown: false}}
-                    initialRouteName={user ? 'Drawer' : 'Login'}>
-                    <Stack.Screen name="Login" component={LoginScreen} />
-                    <Stack.Screen
-                      name="Drawer"
-                      component={DrawerStackScreens}
-                    />
-                  </Stack.Navigator>
-                </NavigationContainer>
-              </UserInfoContext.Provider>
-            </LanguageContext.Provider>
-          </AddressContext.Provider>
-        </AuthContext.Provider>
+        <LocationContext.Provider value={{location, setLocation}}>
+          <AuthContext.Provider value={{user, setUser}}>
+            <AddressContext.Provider value={{address, setAddress}}>
+              <LanguageContext.Provider
+                value={{toggleLanguage, setToggleLanguage}}>
+                <UserInfoContext.Provider value={{userInfo, setUserInfo}}>
+                  <NavigationContainer>
+                    <Stack.Navigator
+                      screenOptions={{headerShown: false}}
+                      initialRouteName={user ? 'Drawer' : 'Login'}>
+                      <Stack.Screen name="Login" component={LoginScreen} />
+                      <Stack.Screen
+                        name="Drawer"
+                        component={DrawerStackScreens}
+                      />
+                    </Stack.Navigator>
+                  </NavigationContainer>
+                </UserInfoContext.Provider>
+              </LanguageContext.Provider>
+            </AddressContext.Provider>
+          </AuthContext.Provider>
+        </LocationContext.Provider>
       </NotificationContext.Provider>
     </SafeAreaProvider>
   );
@@ -246,7 +251,7 @@ export default App;
 
 const styles = StyleSheet.create({
   activityContainer: {
-    flex:1,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',

@@ -1,4 +1,4 @@
-import React, {useContext, useLayoutEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -19,7 +19,7 @@ const DrawerContains = () => {
   const {userInfo, setUserInfo} = userInfoContext;
   const [isLoading, setIsLoading] = useState(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const getOutlet = async () => {
       try {
         setIsLoading(true);

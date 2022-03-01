@@ -56,13 +56,13 @@ const SelectIncentive = () => {
         res?.data?.data.length !== 0
           ? (setSelectIncentiveData(res.data.data[0]), setShowIncentive(false))
           : (setSelectIncentiveData([]), setShowIncentive(true));
-        console.log('data---------->', res.data.data);
+        // console.log('data---------->', res.data.data);
       }
     };
     getSelectedIncentive();
   }, [dropdown, showIncentive]);
-  console.log({selectIncentiveData});
-  console.log({showIncentive});
+  // console.log({selectIncentiveData});
+  // console.log({showIncentive});
   const getTypeOne = async () => {
     const response = await axios.get(baseURL_Server2 + '/api/getTypeOne');
     if (response.status !== 200) {
@@ -73,13 +73,13 @@ const SelectIncentive = () => {
           return {
             value: x.name,
             label: x.name,
-            image: {uri: incentiveMediaURL + `/${x.photo}`},
+            image: {uri: incentiveMediaURL + `${x.photo}`},
           };
         }),
       );
     }
   };
-
+  // console.log('setTypeOne------------->', typeOne);
   const getTypeTwo = async () => {
     const response = await axios.get(baseURL_Server2 + '/api/getTypeTwo');
     if (response.status !== 200) {
@@ -104,22 +104,22 @@ const SelectIncentive = () => {
 
   const getEditStatusApi = async () => {
     const response = await axios.get(baseURL_Server2 + '/api/getEditStatus');
-    console.log('getEditStatus----->', response);
+    // console.log('getEditStatus----->', response);
     if (response.status !== 200) {
       Alert.alert('Error', 'Something went wrong');
     } else {
-      console.log('getEditStatus----->', response.data);
+      // console.log('getEditStatus----->', response.data);
       response.data.status === 'inactive'
         ? setEditStatus(false)
         : setEditStatus(true);
     }
   };
-
+  // console.log('user info------------------------->', userInfo);
   React.useLayoutEffect(() => {
     getEditStatusApi();
   }, [editStatus]);
 
-  console.log({editStatus});
+  // console.log({editStatus});
   useEffect(() => {
     if (userInfo.outletCode) {
       setOutlet(userInfo.outletCode);
@@ -159,14 +159,14 @@ const SelectIncentive = () => {
           },
         },
       );
-      console.log({response});
+      // console.log({response});
       if (response.status !== 200) {
-        console.log({response});
+        // console.log({response});
         setLoading(false);
         setShowIncentive(true);
         Alert.alert('Error', response?.data?.message);
       } else {
-        console.log({response});
+        // console.log({response});
         setLoading(false);
         Alert.alert('Success', response?.data?.message);
       }
@@ -209,13 +209,11 @@ const SelectIncentive = () => {
           ? selectIncentivePhoto2
           : selectIncentiveData.incentiveTwoPhoto,
     };
-    console.log({payload});
+    // console.log({payload});
 
     const response = await axios.put(
       baseURL_Server2 +
-        `/api/updateOneOutletIncentive/:${
-          dropdown.split('(')[1].split(')')[0]
-        }`,
+        `/api/updateOneOutletIncentive/${selectIncentiveData._id}`,
       payload,
       {
         headers: {
@@ -223,7 +221,7 @@ const SelectIncentive = () => {
         },
       },
     );
-    console.log({response});
+    // console.log({response});
     if (response.status !== 200) {
       setShowEditModal(false);
 
@@ -277,7 +275,7 @@ const SelectIncentive = () => {
                 onChange={item => {
                   setDropdown(item.label);
                   setSalesPoint(item.salesPoint);
-                  console.log('selected', item);
+                  // console.log('selected--------------------->', item);
                 }}
                 renderItem={item => _renderItem(item)}
                 textError="Error"
@@ -407,7 +405,7 @@ const SelectIncentive = () => {
                     </Text>
                   </View>
                 </View>
-                {!editStatus && (
+                {editStatus && (
                   <View style={styles.editBtnContainer}>
                     <TouchableOpacity
                       onPress={() => setShowEditModal(true)}

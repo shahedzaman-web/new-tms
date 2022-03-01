@@ -111,6 +111,7 @@ const CallUpdate = ({route, navigation}) => {
       setModalVisible(prevState => !prevState);
     });
   };
+console.log({image})
 
   // const choosePhotoFromLibrary = () => {
   //   ImagePicker.openPicker({

@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -15,6 +16,7 @@ import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import ImagePicker from 'react-native-image-crop-picker';
 import colors from '../config/colors';
 import {Dropdown} from 'react-native-element-dropdown';
+import axios from 'axios';
 
 const PhotoFrame = () => {
   const [dropdown, setDropdown] = React.useState(null);
@@ -22,9 +24,16 @@ const PhotoFrame = () => {
   const languageContext = React.useContext(LanguageContext);
   const {toggleLanguage} = languageContext;
   const userInfoContext = React.useContext(UserInfoContext);
+  const {userInfo} = userInfoContext;
   const [image, setImage] = React.useState(null);
   const [base64Image, setBase64Image] = React.useState('');
- 
+  const [loading, setLoading] = React.useState(false);
+  const [salesPoint, setSalesPoint] = React.useState({});
+  const [outletName, setOutletName] = React.useState();
+  console.log(
+    'userInfoContext.userInfo----------->',
+    JSON.stringify(userInfoContext.userInfo),
+  );
   React.useEffect(() => {
     if (userInfoContext.userInfo.outletCode) {
       setOutlet(userInfoContext.userInfo.outletCode);
@@ -48,6 +57,47 @@ const PhotoFrame = () => {
       });
       setImage(image);
     });
+  };
+
+  const handleSubmit = async () => {
+    if (image) {
+      try {
+        setLoading(true);
+        const payload = {
+          region: 'userInfo.region[0].name',
+          regionId: 'userInfo.region[0].id',
+          area: 'userInfo?.area[0].name',
+          areaId: userInfo?.area[0].id,
+          territory: userInfo?.territory[0].name,
+          territoryId: userInfo?.territory[0].id,
+          salesPoint: salesPoint.name,
+          salesPointId: salesPoint.id,
+          tmsName: userInfo.name,
+          tmsEnroll: userInfo.enrollId,
+          tmsMobile: userInfo.phone,
+          outletCode: dropdown,
+          outletName: outletName,
+          framePhoto: base64Image,
+        };
+        const response = await axios.post(
+          'http://5.182.17.51:5000/api/addPhotoFrame',
+          JSON.stringify(payload),
+          {
+            headers: {'Content-type': 'application/json'},
+          },
+        );
+        console.log({response});
+        if (response.statusText !== 'OK') {
+          setLoading(false);
+          Alert.alert('danger', 'Something Went Wrong');
+        } else {
+          setLoading(false);
+          console.log(response);
+        }
+      } catch (e) {
+        console.log(e.response);
+      }
+    }
   };
   const _renderItem = item => {
     return (
@@ -81,6 +131,8 @@ const PhotoFrame = () => {
                 value={dropdown}
                 onChange={item => {
                   setDropdown(item.value);
+                  setSalesPoint(item.salesPoint);
+                  setOutletName(item.label);
                   // console.log('selected', item);
                 }}
                 renderItem={item => _renderItem(item)}
@@ -92,24 +144,37 @@ const PhotoFrame = () => {
           </View>
         </View>
         {dropdown && (
-          <View style={styles.imageContainer}>
-            <TouchableOpacity
-              style={styles.takePhotoBtn}
-              onPress={takePhotoFromCamera}>
-              <Image
-                source={
-                  image
-                    ? {uri: image.path}
-                    : require('../assets/image/cam.png')
-                }
-                style={styles.image}
-              />
-              <Text style={styles.btnText}>
-                {toggleLanguage ? 'Take Photo' : 'ছবি তুলুন'}
+          <>
+            <View style={styles.imageContainer}>
+              <TouchableOpacity
+                style={styles.takePhotoBtn}
+                onPress={takePhotoFromCamera}>
+                <Image
+                  source={
+                    image
+                      ? {uri: image.path}
+                      : require('../assets/image/cam.png')
+                  }
+                  style={styles.image}
+                />
+                <Text style={styles.btnText}>
+                  {toggleLanguage ? 'Take Photo' : 'ছবি তুলুন'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.submitContainer}></View>
+          </>
+        )}
+        <>
+          {image && (
+            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+              <Text style={styles.submitText}>
+                {loading && <ActivityIndicator color="white" />}
+                {toggleLanguage ? 'Submit' : 'জমা দিন'}
               </Text>
             </TouchableOpacity>
-          </View>
-        )}
+          )}
+        </>
       </View>
     </AppScreen>
   );
@@ -141,7 +206,8 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     fontWeight: 'bold',
-  },item: {
+  },
+  item: {
     paddingVertical: 17,
     paddingHorizontal: 4,
     flexDirection: 'row',
@@ -153,16 +219,40 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 24,
     marginVertical: 5,
-  },imageContainer:{
+  },
+  imageContainer: {
     backgroundColor: 'rgba(231, 76, 60, 0.2)',
-      justifyContent: 'center',
-      alignItems : 'center',
-      borderWidth:1,
-      borderColor: colors.primary,
-      borderRadius: 5,
-      marginHorizontal:60,
-      paddingVertical:4
-  },btnText:{
-      textAlign: 'center'
-  },image: {width: 60, height: 60},
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 5,
+    marginHorizontal: 60,
+    paddingVertical: 4,
+  },
+  btnText: {
+    textAlign: 'center',
+  },
+  image: {width: 60, height: 60},
+  submitContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  submitBtn: {
+    alignSelf: 'center',
+    backgroundColor: colors.primary,
+    padding: 10,
+    borderRadius: 5,
+    width: wp('80%'),
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  submitText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });
